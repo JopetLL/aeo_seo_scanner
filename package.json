@@ -1,0 +1,46 @@
+{
+  "name": "findable",
+  "version": "0.1.0",
+  "description": "Score any web page for SEO and AI-agent readiness from the command line.",
+  "scripts": {
+    "build": "tsc",
+    "dev": "node src/cli.ts",
+    "test": "node --test \"test/**/*.test.ts\"",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build && npm test"
+  },
+  "keywords": [
+    "seo",
+    "audit",
+    "ai-agents",
+    "llm",
+    "geo",
+    "robots-txt",
+    "llms-txt",
+    "cli"
+  ],
+  "author": "Jonathan Peter Llanita",
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "cheerio": "^1.2.0",
+    "picocolors": "^1.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.19.2",
+    "typescript": "^7.0.2"
+  },
+  "bin": {
+    "findable": "dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JopetLL/findable.git"
+  }
+}
