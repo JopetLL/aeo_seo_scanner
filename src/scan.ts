@@ -48,7 +48,7 @@ export async function scan(input: string, opts: ScanOptions = {}): Promise<Repor
   const get = (path: string, extra: Parameters<typeof fetchUrl>[1] = {}) => fetchUrl(new URL(path, origin).href, { timeout, ...extra });
   const [robotsRes, notFoundRes, markdownRes, llmsRes, wellKnownList, agentList] = await Promise.all([
     get('/robots.txt', { accept: 'text/plain,*/*' }),
-    get(`/findable-404-check-${Math.random().toString(36).slice(2, 10)}`, { readBody: false }),
+    get(`/aeo_seo_scanner-404-check-${Math.random().toString(36).slice(2, 10)}`, { readBody: false }),
     fetchUrl(page.url, { timeout, accept: 'text/markdown' }),
     get('/llms.txt', { accept: 'text/plain,text/markdown,*/*' }),
     Promise.all(Object.entries(WELL_KNOWN_PATHS).map(async ([key, path]) => [key, await get(path, { accept: 'application/json,*/*' })] as const)),
@@ -102,7 +102,7 @@ export async function scan(input: string, opts: ScanOptions = {}): Promise<Repor
   const overall = Math.round((seo.score + agent.score) / 2);
 
   return {
-    tool: { name: 'findable', version: VERSION },
+    tool: { name: 'aeo_seo_scanner', version: VERSION },
     url: requested.href,
     finalUrl: page.url,
     scannedAt: new Date().toISOString(),

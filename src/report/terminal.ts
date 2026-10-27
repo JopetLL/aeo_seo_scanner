@@ -36,7 +36,7 @@ export function renderTerminal(report: Report, { verbose = false } = {}): string
   const { overall, pillars } = report;
 
   out.push('');
-  out.push(`  ${pc.bold('findable')} ${pc.dim(`v${report.tool.version}`)}  ${pc.underline(report.finalUrl)}`);
+  out.push(`  ${pc.bold('aeo_seo_scanner')} ${pc.dim(`v${report.tool.version}`)}  ${pc.underline(report.finalUrl)}`);
   out.push('');
   out.push(`  ${pc.bold('Overall')}  ${colourFor(overall.score)(pc.bold(String(overall.score).padStart(3)))}${pc.dim('/100')}  ${pc.bold(overall.grade.letter)} · ${overall.grade.label}`);
   out.push(pillarLine('SEO', pillars.seo));

@@ -7,15 +7,15 @@ import { renderTerminal } from './report/terminal.ts';
 import { renderHtml } from './report/html.ts';
 
 const HELP = `
-  ${pc.bold('findable')} — score a web page for SEO and AI-agent readiness
+  ${pc.bold('aeo_seo_scanner')} — score a web page for SEO and AI-agent readiness
 
   ${pc.bold('Usage')}
-    findable <url> [options]
+    aeo_seo_scanner <url> [options]
 
   ${pc.bold('Options')}
     --json               Print the full report as JSON
     --html               Also write a shareable HTML report
-    --out <file>         HTML report path (default: findable-<host>.html)
+    --out <file>         HTML report path (default: aeo_seo_scanner-<host>.html)
     --no-links           Skip checking whether links resolve
     --max-links <n>      Check at most n links (default 50)
     --timeout <ms>       Per-request timeout (default 15000)
@@ -25,10 +25,10 @@ const HELP = `
     --version            Show the version
 
   ${pc.bold('Examples')}
-    findable example.com
-    findable https://example.com/pricing --html
-    findable example.com --json --no-links | jq .overall
-    findable example.com --fail-under 80
+    aeo_seo_scanner example.com
+    aeo_seo_scanner https://example.com/pricing --html
+    aeo_seo_scanner example.com --json --no-links | jq .overall
+    aeo_seo_scanner example.com --fail-under 80
 `;
 
 async function main(): Promise<number> {
@@ -71,7 +71,7 @@ async function main(): Promise<number> {
   else console.log(renderTerminal(report, { verbose: values.verbose }));
 
   if (values.html || values.out) {
-    const file = values.out ?? `findable-${new URL(report.finalUrl).hostname}.html`;
+    const file = values.out ?? `aeo_seo_scanner-${new URL(report.finalUrl).hostname}.html`;
     await writeFile(file, renderHtml(report));
     if (!values.json) console.log(`  HTML report written to ${pc.underline(file)}\n`);
   }

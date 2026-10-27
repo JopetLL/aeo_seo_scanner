@@ -1,7 +1,7 @@
 {
-  "name": "findable",
+  "name": "aeo_seo_scanner",
   "version": "0.1.0",
-  "description": "Score any web page for SEO and AI-agent readiness from the command line.",
+  "description": "Score any web page for SEO and AEO (AI answer engine and agent readiness) from the command line.",
   "scripts": {
     "build": "tsc",
     "dev": "node src/cli.ts",
@@ -10,6 +10,7 @@
     "prepublishOnly": "npm run build && npm test"
   },
   "keywords": [
+    "aeo",
     "seo",
     "audit",
     "ai-agents",
@@ -31,7 +32,7 @@
     "typescript": "^7.0.2"
   },
   "bin": {
-    "findable": "dist/cli.js"
+    "aeo_seo_scanner": "dist/cli.js"
   },
   "files": [
     "dist"
@@ -41,6 +42,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/JopetLL/findable.git"
+    "url": "git+https://github.com/JopetLL/aeo_seo_scanner.git"
   }
 }

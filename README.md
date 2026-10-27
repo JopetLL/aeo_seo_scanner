@@ -1,8 +1,8 @@
-# findable
+# aeo_seo_scanner
 
-**Is your page findable by search engines *and* AI agents?**
+**AEO + SEO in one scan: is your page findable by search engines *and* AI answer engines?**
 
-`findable` scans a URL and scores it on two things at once:
+`aeo_seo_scanner` scans a URL and scores it on two things at once:
 
 - **SEO**: the on-page fundamentals (titles, H1s, canonicals, links, structured data and more).
 - **AI agent readiness**: whether ChatGPT, Claude, Perplexity and browser agents can reach, read and cite the page.
@@ -10,9 +10,9 @@
 You get a 0–100 score and a letter grade for each, a list of the highest-impact fixes, and the evidence behind every result. Run it in a terminal, pipe the JSON into a script, or produce a shareable HTML report.
 
 ```
-$ npx findable example.com
+$ npx aeo_seo_scanner example.com
 
-  findable v0.1.0  https://example.com/
+  aeo_seo_scanner v0.1.0  https://example.com/
 
   Overall   53/100  F · Poor
   SEO       59/100  ████████████░░░░░░░░  F  11/20 passed
@@ -29,31 +29,31 @@ $ npx findable example.com
 
 ## Why
 
-Agent-readiness scanners such as [Is Agentic](https://is-agentic.com) and Cloudflare's [isitagentready.com](https://isitagentready.com) check whether AI agents can use a site. SEO auditors check whether Google can rank it. In practice they're the same job: the page needs to be crawlable, server-rendered, well-structured and clearly labelled. `findable` checks both in one pass, runs locally with no account or API key, and works as a CI gate.
+Agent-readiness scanners such as [Is Agentic](https://is-agentic.com) and Cloudflare's [isitagentready.com](https://isitagentready.com) check whether AI agents can use a site. SEO auditors check whether Google can rank it. In practice they're the same job: the page needs to be crawlable, server-rendered, well-structured and clearly labelled. `aeo_seo_scanner` checks both in one pass, runs locally with no account or API key, and works as a CI gate.
 
 ## Install
 
 Requires Node 20 or later.
 
 ```sh
-npx findable <url>          # run without installing
-npm install -g findable     # or install the command globally
+npx aeo_seo_scanner <url>          # run without installing
+npm install -g aeo_seo_scanner     # or install the command globally
 ```
 
 ## Usage
 
 ```sh
-findable example.com                        # terminal report
-findable https://example.com/pricing --html # also write findable-example.com.html
-findable example.com --json | jq .overall   # machine-readable
-findable example.com --fail-under 80        # exit 1 below 80, for CI
+aeo_seo_scanner example.com                        # terminal report
+aeo_seo_scanner https://example.com/pricing --html # also write aeo_seo_scanner-example.com.html
+aeo_seo_scanner example.com --json | jq .overall   # machine-readable
+aeo_seo_scanner example.com --fail-under 80        # exit 1 below 80, for CI
 ```
 
 | Option | |
 |---|---|
 | `--json` | Print the full report as JSON |
 | `--html` | Also write a self-contained HTML report |
-| `--out <file>` | HTML report path (default `findable-<host>.html`) |
+| `--out <file>` | HTML report path (default `aeo_seo_scanner-<host>.html`) |
 | `--no-links` | Skip checking whether links resolve (faster) |
 | `--max-links <n>` | Check at most *n* links (default 50) |
 | `--timeout <ms>` | Per-request timeout (default 15000) |
