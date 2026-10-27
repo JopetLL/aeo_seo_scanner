@@ -202,16 +202,23 @@ const wordCount: Check = (ctx) => {
 
 const imageAlt: Check = (ctx) => {
   const r = make('image-alt', 'Content', 'Image alt text', 'recommended');
-  const imgs = ctx.$('img').filter((_, el) => ctx.$(el).attr('role') !== 'presentation' && ctx.$(el).attr('aria-hidden') !== 'true');
-  if (imgs.length === 0) return r('info', 'No images');
+  // An <img> with no source of any kind is an unrendered framework template (Vue's :src,
+  // Alpine's x-bind…) or a placeholder. It shows nothing, so it isn't judged on alt text.
+  const hasSource = (el: unknown) => ['src', 'srcset', 'data-src', 'data-srcset'].some((a) => ctx.$(el as never).attr(a)?.trim());
+  const all = ctx.$('img').filter((_, el) => ctx.$(el).attr('role') !== 'presentation' && ctx.$(el).attr('aria-hidden') !== 'true');
+  const imgs = all.filter((_, el) => hasSource(el));
+  const templates = all.length - imgs.length;
+  const templateNote = templates ? [`${plural(templates, 'image template')} with no source skipped (e.g. Vue :src bindings)`] : [];
+  if (imgs.length === 0) return r('info', templates ? `No rendered images (${plural(templates, 'template')} skipped)` : 'No images');
   const missing = imgs.filter((_, el) => ctx.$(el).attr('alt') === undefined);
   const pct = Math.round(((imgs.length - missing.length) / imgs.length) * 100);
   const summary = `${pct}% of ${plural(imgs.length, 'image')} have alt`;
-  if (missing.length === 0) return r('pass', summary);
+  if (missing.length === 0) return r('pass', summary, { details: templateNote });
   const details = missing
-    .map((_, el) => ctx.$(el).attr('src') ?? ctx.$(el).attr('data-src') ?? '(no src)')
+    .map((_, el) => ctx.$(el).attr('src') || ctx.$(el).attr('data-src') || ctx.$(el).attr('srcset') || '')
     .get()
-    .slice(0, 10);
+    .slice(0, 10)
+    .concat(templateNote);
   const fix = 'Add descriptive alt text (or alt="" for purely decorative images).';
   return r(pct >= 90 ? 'warn' : 'fail', summary, { details, fix });
 };

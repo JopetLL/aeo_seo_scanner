@@ -144,7 +144,18 @@ const labelledControls: Check = (ctx) => {
   const $ = ctx.$;
   const unlabelled: string[] = [];
   // Controls hidden from assistive tech (aria-hidden on the element or an ancestor) are invisible to agents too.
-  const exposed = (_: number, el: unknown) => $(el as never).closest('[aria-hidden="true"]').length === 0;
+  // Also skips honeypot / autofill-trap fields: a control that is itself hidden, or that is
+  // parked far off-screen (e.g. top: -1000px), alone or in a wrapper. Controls inside a
+  // container hidden with display:none are still checked: that is how modals, tabs and
+  // accordions start out, and agents use those controls once they open.
+  const SELF_HIDDEN = /display\s*:\s*none|visibility\s*:\s*hidden/i;
+  const OFFSCREEN = /(?:top|left)\s*:\s*-\d{3,}px/i;
+  const exposed = (_: number, el: unknown) => {
+    const $el = $(el as never);
+    const style = (n: unknown) => $(n as never).attr('style') ?? '';
+    if ($el.closest('[aria-hidden="true"]').length || $el.is('[hidden]') || SELF_HIDDEN.test(style(el))) return false;
+    return !$el.add($el.parents()).toArray().some((n) => OFFSCREEN.test(style(n)));
+  };
   const fields = $('input:not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="image"]), select, textarea').filter(exposed);
   const buttons = $('button, [role="button"], input[type="submit"], input[type="button"], input[type="reset"]').filter(exposed);
   const labels = $('label[for]');
