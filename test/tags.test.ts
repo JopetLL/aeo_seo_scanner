@@ -73,3 +73,16 @@ test('recognises hand-built consent code when no named tool is present', () => {
   const tags = detectTags(`<script>if (window.siteConsent && window.siteConsent.hasOptedOut()) {}</script>`);
   assert.deepEqual(tags.map((t) => t.name), ['Custom consent code']);
 });
+
+test('recognises consent gates that read a consent cookie before loading a tag', () => {
+  const tags = detectTags(`<script>(function(){
+var m=document.cookie.match(new RegExp("(?:^|;\\\\s*)site\\\\.consent\\\\.v1=([^;]*)"));
+if(m&&m[1].indexOf("analytics")<0)return;
+})();</script><script src="https://www.clarity.ms/tag/abc"></script>`);
+  assert.deepEqual(tags.map((t) => t.name), ['Microsoft Clarity', 'Custom consent code']);
+});
+
+test('marketing copy about consent is not treated as consent code', () => {
+  const tags = detectTags('<p>Integrations with consent management solutions</p>');
+  assert.deepEqual(tags, []);
+});

@@ -86,7 +86,8 @@ const VENDORS: Vendor[] = [
 ];
 
 /** Hand-built consent handling, e.g. window.siteConsent or a cookie-consent banner script. Page only. */
-const CUSTOM_CONSENT = /window\.\w*[Cc]onsent\b|hasOptedOut|cookie[-_]?consent|consentGranted/;
+const CUSTOM_CONSENT =
+  /window\.\w*[Cc]onsent\b|hasOptedOut|cookie[-_]?consent|consentGranted|document\.cookie[^<]{0,200}consent|consent[\w.\\-]{0,30}=[^<]{0,200}document\.cookie/i;
 
 /** Verification tags are meta tags, so they only count when found in the page itself. */
 const VERIFICATION: { name: string; pattern: RegExp }[] = [
