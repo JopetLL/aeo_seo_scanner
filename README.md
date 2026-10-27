@@ -25,7 +25,7 @@ No coding needed, just one command in your computer's terminal.
 npx github:JopetLL/aeo_seo_scanner example.com --html
 ```
 
-The first run asks "Ok to proceed?" (type `y`) and takes about 30 seconds to install. After that, scans take 2–10 seconds. The scores print in the terminal, and `--html` also saves a shareable report (like the one above) in the folder you ran it from. On a Mac, `open aeo_seo_scanner-*.html` opens it. In the report, hover the **?** next to any category to see what it covers and why it matters.
+The first run asks "Ok to proceed?" (type `y`) and takes about 30 seconds to install. After that, scans take 2–10 seconds. The scores print in the terminal, and `--html` also saves a shareable report (like the one above) in the folder you ran it from. On a Mac, `open aeo_seo_scanner-*.html` opens it. In the report, hover the **?** next to any category or check to see what it looks at and why it matters.
 
 ### What the scores mean
 

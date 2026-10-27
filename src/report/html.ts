@@ -1,3 +1,4 @@
+import { CATEGORY_HELP, CHECK_HELP } from './help.ts';
 import type { CheckResult, PillarScore, Report } from '../types.ts';
 
 const esc = (s: string) =>
@@ -33,44 +34,17 @@ function checkRow(c: CheckResult): string {
     <li class="check ${c.status}">
       <span class="badge" title="${STATUS_LABEL[c.status]}">${STATUS_LABEL[c.status]}</span>
       <div class="check-main">
-        <div class="check-head"><span class="check-title">${esc(c.title)}</span>${c.tier === 'essential' ? '<span class="tier">Essential</span>' : ''}</div>
+        <div class="check-head"><span class="check-title">${esc(c.title)}</span>${tooltip(c.title, CHECK_HELP[c.id], `check-${c.id}`)}${c.tier === 'essential' ? '<span class="tier">Essential</span>' : ''}</div>
         <div class="summary">${esc(c.summary)}</div>
         ${body}
       </div>
     </li>`;
 }
 
-/** What each category covers and why it matters, shown behind the "?" next to its heading. */
-const CATEGORY_HELP: Record<string, string> = {
-  Crawlability:
-    'Whether search engines can reach and index this URL: status code, HTTPS, redirects, noindex, robots.txt and the canonical tag. If a page can’t be crawled or is marked noindex, nothing else matters, because it won’t rank.',
-  Metadata:
-    'The tags in the page’s <head> that search results, link previews and AI answers display: title, meta description, language, viewport, Open Graph and favicon. They decide how the page looks before anyone clicks.',
-  Content:
-    'The substance of the page: one clear H1, a logical heading outline, enough copy to answer the question, and alt text on images. Search engines rank, and AI models quote, what they can actually read.',
-  Links:
-    'Internal links let crawlers and agents discover your other pages and understand how they relate. Descriptive anchor text says what’s behind each link, and broken links waste crawl budget and dead-end visitors.',
-  'Structured data':
-    'JSON-LD schema that states facts in machine-readable form: who you are, what you sell, FAQs, breadcrumbs. It powers rich results in Google and gives AI answers reliable facts to cite.',
-  'Tags & tracking':
-    'Analytics, ad, marketing, consent and verification tags found in the HTML and inside public Google Tag Manager containers. Mostly informational; it flags retired Universal Analytics, GA4 installed twice, tracking with no consent manager, and heavy tag loads.',
-  Performance:
-    'How fast the server answers and how large the HTML is. Slow, heavy pages get crawled less often, and AI agents with tight time and context limits may give up or cut the page short.',
-  Access:
-    'Whether AI assistants are allowed and able to fetch the page: robots.txt rules for AI agents, firewalls that refuse AI user-agents, and real 404s for missing pages. An agent that can’t fetch a page can’t cite it.',
-  Understanding:
-    'Whether an agent can make sense of the page without running JavaScript: content in the raw HTML, landmarks like <main>, citation metadata and labelled controls. Most AI agents read the raw HTML and nothing else.',
-  Discovery:
-    'How crawlers and agents find the rest of your site: a robots.txt and an XML sitemap. Without them, discovery depends on links alone, and new or deep pages get found late.',
-  Emerging:
-    'Newer standards for AI agents: llms.txt, Markdown versions of pages, Content Signals, API catalogs and MCP discovery. Adoption is early and the impact is unproven, so they only add bonus points and never lower the score.',
-};
-
-function tooltip(category: string): string {
-  const text = CATEGORY_HELP[category];
+function tooltip(label: string, text: string | undefined, key: string): string {
   if (!text) return '';
-  const id = `tip-${category.toLowerCase().replace(/[^a-z]+/g, '-')}`;
-  return `<span class="tip"><button type="button" class="tip-btn" aria-label="About ${esc(category)}" aria-describedby="${id}">?</button><span class="tip-body" role="tooltip" id="${id}">${esc(text)}</span></span>`;
+  const id = `tip-${key.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+  return `<span class="tip"><button type="button" class="tip-btn" aria-label="About ${esc(label)}" aria-describedby="${id}">?</button><span class="tip-body" role="tooltip" id="${id}">${esc(text)}</span></span>`;
 }
 
 function section(report: Report, pillar: 'seo' | 'agent', heading: string): string {
@@ -83,7 +57,7 @@ function section(report: Report, pillar: 'seo' | 'agent', heading: string): stri
       .map((cat) => {
         const inCat = checks.filter((c) => c.category === cat);
         const note = inCat[0]?.tier === 'bonus' ? '<span class="note">Bonus: can only add points</span>' : '';
-        return `<h3>${esc(cat)}${tooltip(cat)} ${note}</h3><ul class="checks">${inCat.map(checkRow).join('')}</ul>`;
+        return `<h3>${esc(cat)}${tooltip(cat, CATEGORY_HELP[cat], cat)} ${note}</h3><ul class="checks">${inCat.map(checkRow).join('')}</ul>`;
       })
       .join('')}
   </section>`;
@@ -144,7 +118,8 @@ header .meta { color: var(--muted); font-size: 13px; margin: 0; }
 .fixes, .pillar { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px; margin: 16px 0; }
 h2 { font-size: 18px; margin: 0 0 8px; }
 h3 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 20px 0 6px; }
-h3 { position: relative; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+h3, .check-head { position: relative; }
+h3 { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .tip { display: inline-flex; }
 .tip-btn { width: 16px; height: 16px; padding: 0; border-radius: 50%; border: 1px solid var(--muted); background: transparent; color: var(--muted); font: 600 10px/1 ui-sans-serif, system-ui, sans-serif; cursor: help; display: inline-flex; align-items: center; justify-content: center; }
 .tip-btn:hover, .tip-btn:focus-visible { border-color: var(--accent); color: var(--accent); outline: none; }
@@ -168,7 +143,7 @@ h3 { position: relative; display: flex; align-items: center; gap: 6px; flex-wrap
 .fix { margin: 6px 0 0; padding-left: 10px; border-left: 3px solid var(--accent); }
 footer { color: var(--muted); font-size: 12px; text-align: center; margin-top: 32px; }
 footer a { color: inherit; }
-@media (max-width: 520px) { .badge { flex-basis: 60px; } .ring { width: 120px; } .ring-lg { width: 170px; } }
+@media (max-width: 520px) { .badge { flex-basis: 60px; } .check-head .tip-body { left: -72px; } .ring { width: 120px; } .ring-lg { width: 170px; } }
 </style>
 </head>
 <body>
