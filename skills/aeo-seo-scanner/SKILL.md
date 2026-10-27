@@ -51,6 +51,14 @@ that already handles light and dark mode.
 
 ## Reading results correctly
 
+**Check `warning` first.** When the JSON has a `warning` and `overall.reliable` is `false`,
+the scanner did not reach the real page: it got an HTTP error, a bot-protection challenge
+(Cloudflare, DataDome, Akamai…) or a JavaScript redirect stub. Every check then describes
+that page, not the site. Lead with the warning, do not quote the scores as the site's
+scores, and skip the per-check findings. For a block, say that bot protection that stops a
+scanner probably stops many AI agents too, which is itself an AEO finding. For a redirect
+stub, offer to scan the `target` instead.
+
 Some results need judgement before you repeat them as problems. Check the evidence first.
 
 - **AI user-agents refused (`ai-ua-access`):** the scanner sends the published user-agent

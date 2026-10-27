@@ -1,3 +1,4 @@
+import type { AccessWarning } from './access.ts';
 import type { TagFinding } from './tags.ts';
 
 export type Status = 'pass' | 'warn' | 'fail' | 'info';
@@ -44,7 +45,13 @@ export interface Report {
   finalUrl: string;
   scannedAt: string;
   durationMs: number;
-  overall: { score: number; grade: Grade };
+  /**
+   * reliable is false when the fetched page was an error, a bot challenge or a redirect
+   * stub rather than the site itself; the scores then describe that page, not the site.
+   */
+  overall: { score: number; grade: Grade; reliable: boolean };
+  /** Present when the page the scanner received was not the site itself. */
+  warning?: AccessWarning;
   pillars: Record<Pillar, PillarScore>;
   checks: CheckResult[];
   topFixes: CheckResult[];

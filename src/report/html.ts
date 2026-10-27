@@ -1,4 +1,5 @@
 import { CATEGORY_HELP, CHECK_HELP } from './help.ts';
+import { accessAdvice, scoredPageLabel } from '../access.ts';
 import type { CheckResult, PillarScore, Report } from '../types.ts';
 
 const esc = (s: string) =>
@@ -6,16 +7,17 @@ const esc = (s: string) =>
 
 const tone = (score: number) => (score >= 80 ? 'good' : score >= 60 ? 'ok' : 'bad');
 
-function ring(score: number, label: string, sub: string, large = false): string {
+/** score null renders "n/a"; muted greys the ring out (used when the scan didn't reach the real page). */
+function ring(score: number | null, label: string, sub: string, large = false, muted = false): string {
   const r = 52;
   const c = 2 * Math.PI * r;
   return `
-  <figure class="ring ${large ? 'ring-lg' : ''} ${tone(score)}">
+  <figure class="ring ${large ? 'ring-lg' : ''} ${muted || score == null ? 'na' : tone(score)}">
     <svg viewBox="0 0 120 120" aria-hidden="true">
       <circle class="track" cx="60" cy="60" r="${r}"/>
-      <circle class="value" cx="60" cy="60" r="${r}" stroke-dasharray="${((score / 100) * c).toFixed(1)} ${c.toFixed(1)}"/>
+      ${score == null ? '' : `<circle class="value" cx="60" cy="60" r="${r}" stroke-dasharray="${((score / 100) * c).toFixed(1)} ${c.toFixed(1)}"/>`}
     </svg>
-    <div class="ring-text"><strong>${score}</strong></div>
+    <div class="ring-text"><strong>${score ?? 'n/a'}</strong></div>
     <figcaption>${esc(label)}<span>${esc(sub)}</span></figcaption>
   </figure>`;
 }
@@ -66,7 +68,12 @@ function section(report: Report, pillar: 'seo' | 'agent', heading: string): stri
 export function renderHtml(report: Report): string {
   const host = new URL(report.finalUrl).hostname;
   const date = new Date(report.scannedAt).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
-  const fixes = report.topFixes.length
+  const w = report.warning;
+  const scoredPage = w ? scoredPageLabel(w) : '';
+  const banner = w
+    ? `<section class="warning" role="alert"><h2>⚠ Not the real page</h2><p>${esc(w.message)}</p><p><strong>What to do:</strong> ${esc(accessAdvice(w))}</p></section>`
+    : '';
+  const fixes = !w && report.topFixes.length
     ? `<section class="fixes"><h2>Top fixes</h2><ol>${report.topFixes
         .map((c) => `<li><strong>${esc(c.title)}</strong> <span class="pill">${c.pillar === 'seo' ? 'SEO' : 'Agents'} · ${c.tier}</span><p>${esc(c.fix!)}</p></li>`)
         .join('')}</ol></section>`
@@ -110,6 +117,9 @@ header .meta { color: var(--muted); font-size: 13px; margin: 0; }
 .ring circle { fill: none; stroke-width: 10; }
 .ring .track { stroke: var(--track); }
 .ring .value { stroke-linecap: round; }
+.ring.na .value { stroke: var(--info); } .ring.na strong { color: var(--muted); }
+.warning { background: var(--ok-bg); border: 1px solid var(--ok); border-radius: 16px; padding: 16px 20px; margin: 16px 0; }
+.warning h2 { color: var(--ok); margin-bottom: 4px; } .warning p { margin: 6px 0 0; }
 .ring.good .value { stroke: var(--good); } .ring.ok .value { stroke: var(--ok); } .ring.bad .value { stroke: var(--bad); }
 .ring-text { position: absolute; top: 0; left: 0; right: 0; aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 .ring-text strong { font-size: 34px; line-height: 1; } .ring-lg .ring-text strong { font-size: 48px; }
@@ -154,10 +164,13 @@ footer a { color: inherit; }
     <p class="meta">Scanned ${esc(date)} · ${(report.durationMs / 1000).toFixed(1)}s · v${esc(report.tool.version)}</p>
   </header>
   <div class="scores">
-    ${ring(report.overall.score, 'Overall', `${report.overall.grade.letter} · ${report.overall.grade.label}`, true)}
-    ${ring(report.pillars.seo.score, 'SEO', pillarSub(report.pillars.seo))}
-    ${ring(report.pillars.agent.score, 'AI agents', pillarSub(report.pillars.agent))}
+    ${w
+      ? ring(null, 'Overall', `Not scored: ${scoredPage}`, true)
+      : ring(report.overall.score, 'Overall', `${report.overall.grade.letter} · ${report.overall.grade.label}`, true)}
+    ${ring(report.pillars.seo.score, 'SEO', w ? `for the ${scoredPage}` : pillarSub(report.pillars.seo), false, !!w)}
+    ${ring(report.pillars.agent.score, 'AI agents', w ? `for the ${scoredPage}` : pillarSub(report.pillars.agent), false, !!w)}
   </div>
+  ${banner}
   ${fixes}
   ${section(report, 'seo', 'SEO')}
   ${section(report, 'agent', 'AI agent readiness')}

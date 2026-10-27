@@ -77,6 +77,11 @@ async function main(): Promise<number> {
   }
 
   const threshold = values['fail-under'] === undefined ? undefined : Number(values['fail-under']);
+  if (threshold !== undefined && report.warning) {
+    // The score belongs to an error, challenge or redirect page, so it can't pass a quality gate.
+    if (!values.json) console.error(pc.red(`  --fail-under ${threshold}: not scored, the scan didn't reach the real page\n`));
+    return 1;
+  }
   if (threshold !== undefined && report.overall.score < threshold) {
     if (!values.json) console.error(pc.red(`  Score ${report.overall.score} is below --fail-under ${threshold}\n`));
     return 1;

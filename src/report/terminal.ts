@@ -1,4 +1,5 @@
 import pc from 'picocolors';
+import { accessAdvice, scoredPageLabel } from '../access.ts';
 import type { CheckResult, PillarScore, Report, Status } from '../types.ts';
 
 const ICON: Record<Status, string> = {
@@ -15,8 +16,9 @@ function bar(score: number, width = 20): string {
   return colourFor(score)('█'.repeat(filled)) + pc.dim('░'.repeat(width - filled));
 }
 
-function pillarLine(name: string, p: PillarScore): string {
+function pillarLine(name: string, p: PillarScore, scoredPage?: string): string {
   const bonus = p.bonus ? pc.dim(` (+${p.bonus} bonus)`) : '';
+  if (scoredPage) return `  ${name.padEnd(8)} ${pc.dim(`${String(p.score).padStart(3)}/100 for the ${scoredPage}, not the site`)}`;
   return `  ${name.padEnd(8)} ${colourFor(p.score)(String(p.score).padStart(3))}${pc.dim('/100')}  ${bar(p.score)}  ${p.grade.letter.padEnd(2)} ${pc.dim(`${p.passed}/${p.total} passed`)}${bonus}`;
 }
 
@@ -38,9 +40,17 @@ export function renderTerminal(report: Report, { verbose = false } = {}): string
   out.push('');
   out.push(`  ${pc.bold('aeo_seo_scanner')} ${pc.dim(`v${report.tool.version}`)}  ${pc.underline(report.finalUrl)}`);
   out.push('');
-  out.push(`  ${pc.bold('Overall')}  ${colourFor(overall.score)(pc.bold(String(overall.score).padStart(3)))}${pc.dim('/100')}  ${pc.bold(overall.grade.letter)} · ${overall.grade.label}`);
-  out.push(pillarLine('SEO', pillars.seo));
-  out.push(pillarLine('Agents', pillars.agent));
+  const w = report.warning;
+  const scoredPage = w ? scoredPageLabel(w) : undefined;
+  if (w) {
+    out.push(`  ${pc.bgYellow(pc.black(' ⚠ NOT THE REAL PAGE '))} ${pc.yellow(w.message)}`);
+    out.push('');
+    out.push(`  ${pc.bold('Overall')}  ${pc.yellow(pc.bold('n/a'))}  Not scored: the scan reached a ${scoredPage}, not the site`);
+  } else {
+    out.push(`  ${pc.bold('Overall')}  ${colourFor(overall.score)(pc.bold(String(overall.score).padStart(3)))}${pc.dim('/100')}  ${pc.bold(overall.grade.letter)} · ${overall.grade.label}`);
+  }
+  out.push(pillarLine('SEO', pillars.seo, scoredPage));
+  out.push(pillarLine('Agents', pillars.agent, scoredPage));
 
   for (const [pillar, heading] of [['seo', 'SEO'], ['agent', 'AI agent readiness']] as const) {
     out.push('');
@@ -55,7 +65,11 @@ export function renderTerminal(report: Report, { verbose = false } = {}): string
     }
   }
 
-  if (report.topFixes.length) {
+  if (w) {
+    out.push('');
+    out.push(pc.bold('  What to do'));
+    out.push(`   ${accessAdvice(w)}`);
+  } else if (report.topFixes.length) {
     out.push('');
     out.push(pc.bold('  Top fixes'));
     report.topFixes.forEach((c, i) => {

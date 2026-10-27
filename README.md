@@ -97,7 +97,7 @@ aeo_seo_scanner example.com --fail-under 80        # exit 1 below 80, for CI
 | `--fail-under <n>` | Exit with code 1 if the overall score is below *n* |
 | `-v`, `--verbose` | Show every evidence line |
 
-Exit codes: `0` success, `1` below `--fail-under`, `2` the page could not be scanned.
+Exit codes: `0` success, `1` below `--fail-under` (or not scored, see below), `2` the page could not be fetched at all.
 
 ## What it checks
 
@@ -155,6 +155,18 @@ The overall score is the average of the SEO and Agents scores.
 | < 60 | F · Poor |
 
 **Top fixes** ranks the failing and warning checks by their potential impact, so essential failures come first.
+
+## When the scan doesn't reach the real page
+
+Sometimes the page the scanner receives isn't the site: a **403 from bot protection** (Cloudflare, DataDome, Akamai, HUMAN, Imperva…), a **challenge page** served with a 200, any other **4xx/5xx**, or a **JavaScript redirect stub** (common on parked domains). Grading that page as if it were the site would be misleading, so instead:
+
+- the report opens with a **⚠ Not the real page** warning that says what was received and why;
+- the overall score shows **n/a**, and the SEO and Agents scores are labelled as describing the block page, error page or redirect stub;
+- **Top fixes** is replaced by advice for that situation;
+- `--json` sets `overall.reliable: false` and adds a `warning` object (`kind`, `status`, `vendor` or `target`);
+- `--fail-under` exits `1`, because an unscored page can't pass a quality gate.
+
+A block is worth knowing about in itself: bot protection that stops a scanner probably stops many AI agents too.
 
 ## Limitations
 

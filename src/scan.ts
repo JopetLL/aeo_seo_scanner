@@ -5,6 +5,7 @@ import { seoChecks } from './checks/seo.ts';
 import { agentChecks, WELL_KNOWN_PATHS } from './checks/agent.ts';
 import { tagChecks } from './checks/tags.ts';
 import { detectTags, gtmContainerIds } from './tags.ts';
+import { assessAccess } from './access.ts';
 import { scorePillar, topFixes, grade } from './score.ts';
 import type { LinkInfo, LinkStatus, ScanContext } from './context.ts';
 import type { Report } from './types.ts';
@@ -70,7 +71,13 @@ export async function scan(input: string, opts: ScanOptions = {}): Promise<Repor
 
   const robots = robotsRes.status === 200 && !/^\s*</.test(robotsRes.body) ? parseRobots(robotsRes.body) : null;
 
-  const sitemapUrl = robots?.sitemaps[0] ?? new URL('/sitemap.xml', origin).href;
+  // robots.txt should give an absolute Sitemap URL, but relative ones ("/sitemap.xml") exist in the wild.
+  let sitemapUrl: string;
+  try {
+    sitemapUrl = new URL(robots?.sitemaps[0] ?? '/sitemap.xml', origin).href;
+  } catch {
+    sitemapUrl = new URL('/sitemap.xml', origin).href;
+  }
   const sitemapRes: FetchResult | null = await fetchUrl(sitemapUrl, { timeout, accept: 'application/xml,text/xml,*/*' });
 
   let linkStatuses: LinkStatus[] | null = null;
@@ -115,6 +122,7 @@ export async function scan(input: string, opts: ScanOptions = {}): Promise<Repor
   const seo = scorePillar(checks, 'seo');
   const agent = scorePillar(checks, 'agent');
   const overall = Math.round((seo.score + agent.score) / 2);
+  const warning = assessAccess(page.status, page.body, ctx.text ? ctx.text.split(/\s+/).length : 0, page.headers);
 
   return {
     tool: { name: 'aeo_seo_scanner', version: VERSION },
@@ -122,7 +130,8 @@ export async function scan(input: string, opts: ScanOptions = {}): Promise<Repor
     finalUrl: page.url,
     scannedAt: new Date().toISOString(),
     durationMs: Date.now() - started,
-    overall: { score: overall, grade: grade(overall) },
+    overall: { score: overall, grade: grade(overall), reliable: !warning },
+    ...(warning ? { warning } : {}),
     pillars: { seo, agent },
     checks,
     topFixes: topFixes(checks),
