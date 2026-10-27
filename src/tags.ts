@@ -45,6 +45,16 @@ const VENDORS: Vendor[] = [
   { name: 'Plausible', category: 'Analytics', pattern: /plausible\.io\/js/ },
   { name: 'Fathom', category: 'Analytics', pattern: /cdn\.usefathom\.com/ },
   { name: 'Matomo', category: 'Analytics', pattern: /matomo\.js|piwik\.js/ },
+  { name: 'Contentsquare', category: 'Analytics', pattern: /t\.contentsquare\.net/ },
+  { name: 'Quantum Metric', category: 'Analytics', pattern: /cdn\.quantummetric\.com/ },
+  { name: 'Glassbox', category: 'Analytics', pattern: /glassboxdigital\.io|glassboxcdn\.com/ },
+  { name: 'LogRocket', category: 'Analytics', pattern: /cdn\.logrocket\.io|cdn\.lr-ingest\.(?:io|com)/ },
+  { name: 'Mouseflow', category: 'Analytics', pattern: /cdn\.mouseflow\.com/ },
+  { name: 'Crazy Egg', category: 'Analytics', pattern: /script\.crazyegg\.com/ },
+  { name: 'Lucky Orange', category: 'Analytics', pattern: /tools\.luckyorange\.com/ },
+  { name: 'Optimizely', category: 'Analytics', pattern: /cdn\.optimizely\.com/ },
+  { name: 'VWO', category: 'Analytics', pattern: /dev\.visualwebsiteoptimizer\.com/ },
+  { name: 'AB Tasty', category: 'Analytics', pattern: /try\.abtasty\.com/ },
 
   // Advertising
   { name: 'Google Ads', category: 'Advertising', ids: /\b(AW-\d{6,12})\b/g },

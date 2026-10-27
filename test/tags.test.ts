@@ -86,3 +86,10 @@ test('marketing copy about consent is not treated as consent code', () => {
   const tags = detectTags('<p>Integrations with consent management solutions</p>');
   assert.deepEqual(tags, []);
 });
+
+test('detects session-replay and experimentation tools, including escaped URLs inside GTM', () => {
+  const container = '"vtp_html":"\\u003Cscript src=\\"https:\\/\\/t.contentsquare.net\\/uxa\\/355d5ac78f8a5.js\\"\\u003E"';
+  const tags = detectTags('<script src="https://cdn.optimizely.com/js/123.js"></script>', { 'GTM-X': container });
+  const found = Object.fromEntries(tags.map((t) => [t.name, t.sources]));
+  assert.deepEqual(found, { Contentsquare: ['gtm'], Optimizely: ['page'] });
+});
