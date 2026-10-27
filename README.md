@@ -2,42 +2,77 @@
 
 **AEO + SEO in one scan: is your page findable by search engines *and* AI answer engines?**
 
-`aeo_seo_scanner` scans a URL and scores it on two things at once:
+Give it a URL and it scores the page 0–100 on two things:
 
-- **SEO**: the on-page fundamentals (titles, H1s, canonicals, links, structured data and more).
-- **AI agent readiness**: whether ChatGPT, Claude, Perplexity and browser agents can reach, read and cite the page.
+- **SEO**: the on-page fundamentals Google checks (titles, H1s, canonicals, links, structured data and more).
+- **AEO / AI agent readiness**: whether ChatGPT, Claude, Perplexity and AI browser agents can reach, read and cite the page.
 
-You get a 0–100 score and a letter grade for each, a list of the highest-impact fixes, and the evidence behind every result. Run it in a terminal, pipe the JSON into a script, or produce a shareable HTML report.
+You get a letter grade for each, the five fixes that matter most, and the evidence behind every result.
 
+![HTML report for wikipedia.org: overall 80 (B), SEO 78, AI agents 81, with the top fixes listed](docs/report.png)
+
+## Quick start for SEOs
+
+No coding needed, just one command in your computer's terminal.
+
+**1. Install Node.js (one time).** Download the **LTS** version from [nodejs.org](https://nodejs.org/en/download) and run the installer. If you use Homebrew on a Mac, `brew install node` does the same.
+
+**2. Open Terminal** (Mac: press <kbd>⌘</kbd> + <kbd>Space</kbd> and type "Terminal". Windows: open "PowerShell".)
+
+**3. Scan a page.** Paste this, replacing `example.com` with any page you like:
+
+```sh
+npx github:JopetLL/aeo_seo_scanner example.com --html
 ```
-$ npx aeo_seo_scanner example.com
 
-  aeo_seo_scanner v0.1.0  https://example.com/
+The first run asks "Ok to proceed?" (type `y`) and takes about 30 seconds to install. After that, scans take 2–10 seconds. The scores print in the terminal, and `--html` also saves a shareable report (like the one above) in the folder you ran it from. On a Mac, `open aeo_seo_scanner-*.html` opens it.
 
-  Overall   53/100  F · Poor
-  SEO       59/100  ████████████░░░░░░░░  F  11/20 passed
-  Agents    47/100  █████████░░░░░░░░░░░  F  3/8 passed
-  …
-  Top fixes
-   1. H1 heading (SEO, essential)
-      Add one H1 that states what the page is about.
-   2. Content in the initial HTML (Agents, essential)
-      Put the main content in the HTML response itself; agents skip content that is loaded later or missing.
-   3. Canonical URL (SEO, recommended)
-      Add <link rel="canonical" href="…"> with the absolute preferred URL.
+### What the scores mean
+
+| Score | Grade | What it means |
+|---|---|---|
+| 90–100 | A / A+ | Solid. Any remaining fixes are polish. |
+| 80–89 | B | Good, with a few gaps worth fixing this quarter. |
+| 70–79 | C | Fair. Something important is missing, usually schema, canonicals or metadata. |
+| 60–69 | D | Needs work. Search engines or AI agents are likely misreading the page. |
+| < 60 | F | Poor. Fundamentals are missing, or AI agents can't read the content at all. |
+
+- **SEO** covers what search engines need to crawl, understand and rank the page.
+- **Agents** covers what AI assistants need to fetch, read and cite it. Most AI agents don't run JavaScript, so content that only appears after scripts run counts as missing.
+- **Overall** is the average of the two.
+- Start with **Top fixes**: they're already ranked by impact, with essential checks first.
+
+### What it finds in practice
+
+Real findings from scans of live sites:
+
+- **A photography marketplace's homepage title and meta description are both just its brand name.** Google gets no hint of what the company does.
+- **A staffing company's Organization schema was silently invalid** because a line break had crept into the middle of the logo URL. Google ignores the whole block, including the brand, address and contact details AI answers draw on.
+- **A popular web app's homepage is an empty JavaScript shell.** AI agents see one word of content.
+- **A site that redirects every missing page to its homepage**, which search engines treat as a soft 404, and which misleads agents that follow a dead link.
+
+## Use it from Claude Code
+
+This repo includes a Claude skill. Link it into your skills folder once:
+
+```sh
+git clone https://github.com/JopetLL/aeo_seo_scanner.git
+ln -s "$PWD/aeo_seo_scanner/skills/aeo-seo-scanner" ~/.claude/skills/aeo-seo-scanner
 ```
+
+Then ask Claude things like *"scan example.com"* or *"compare our pricing page with competitor X's"*. Claude runs the scanner, checks suspicious results against the live page, and explains the fixes.
 
 ## Why
 
 Agent-readiness scanners such as [Is Agentic](https://is-agentic.com) and Cloudflare's [isitagentready.com](https://isitagentready.com) check whether AI agents can use a site. SEO auditors check whether Google can rank it. In practice they're the same job: the page needs to be crawlable, server-rendered, well-structured and clearly labelled. `aeo_seo_scanner` checks both in one pass, runs locally with no account or API key, and works as a CI gate.
 
-## Install
+## Install for developers
 
 Requires Node 20 or later.
 
 ```sh
-npx aeo_seo_scanner <url>          # run without installing
-npm install -g aeo_seo_scanner     # or install the command globally
+npx github:JopetLL/aeo_seo_scanner <url>       # run straight from GitHub
+npm install -g github:JopetLL/aeo_seo_scanner  # or install the aeo_seo_scanner command globally
 ```
 
 ## Usage
