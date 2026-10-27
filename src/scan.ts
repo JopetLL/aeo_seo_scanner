@@ -3,6 +3,8 @@ import { AI_AGENT_UAS, fetchUrl, mapLimit, type FetchResult } from './fetcher.ts
 import { parseRobots } from './robots.ts';
 import { seoChecks } from './checks/seo.ts';
 import { agentChecks, WELL_KNOWN_PATHS } from './checks/agent.ts';
+import { tagChecks } from './checks/tags.ts';
+import { detectTags, gtmContainerIds } from './tags.ts';
 import { scorePillar, topFixes, grade } from './score.ts';
 import type { LinkInfo, LinkStatus, ScanContext } from './context.ts';
 import type { Report } from './types.ts';
@@ -44,16 +46,27 @@ export async function scan(input: string, opts: ScanOptions = {}): Promise<Repor
   const $ = cheerio.load(page.body);
   const links = extractLinks($, page.url);
 
-  onProgress('Checking robots.txt, sitemap, AI user-agents and well-known files');
+  onProgress('Checking robots.txt, sitemap, AI user-agents, tags and well-known files');
   const get = (path: string, extra: Parameters<typeof fetchUrl>[1] = {}) => fetchUrl(new URL(path, origin).href, { timeout, ...extra });
-  const [robotsRes, notFoundRes, markdownRes, llmsRes, wellKnownList, agentList] = await Promise.all([
+  const [robotsRes, notFoundRes, markdownRes, llmsRes, wellKnownList, agentList, gtmList] = await Promise.all([
     get('/robots.txt', { accept: 'text/plain,*/*' }),
     get(`/aeo_seo_scanner-404-check-${Math.random().toString(36).slice(2, 10)}`, { readBody: false }),
     fetchUrl(page.url, { timeout, accept: 'text/markdown' }),
     get('/llms.txt', { accept: 'text/plain,text/markdown,*/*' }),
     Promise.all(Object.entries(WELL_KNOWN_PATHS).map(async ([key, path]) => [key, await get(path, { accept: 'application/json,*/*' })] as const)),
     Promise.all(Object.entries(AI_AGENT_UAS).map(async ([agent, ua]) => [agent, await fetchUrl(page.url, { timeout, ua, readBody: false })] as const)),
+    // GTM containers are public JavaScript files, so the tags configured inside them can be read too.
+    Promise.all(
+      gtmContainerIds(page.body)
+        .slice(0, 3)
+        .map(async (id) => [id, await fetchUrl(`https://www.googletagmanager.com/gtm.js?id=${id}`, { timeout, accept: '*/*' })] as const),
+    ),
   ]);
+  const gtmContainers = Object.fromEntries(gtmList);
+  const tags = detectTags(
+    page.body,
+    Object.fromEntries(Object.entries(gtmContainers).filter(([, res]) => res.status === 200).map(([id, res]) => [id, res.body])),
+  );
 
   const robots = robotsRes.status === 200 && !/^\s*</.test(robotsRes.body) ? parseRobots(robotsRes.body) : null;
 
@@ -94,9 +107,11 @@ export async function scan(input: string, opts: ScanOptions = {}): Promise<Repor
     agentStatuses: Object.fromEntries(agentList),
     linkStatuses,
     linksSkipped,
+    gtmContainers,
+    tags,
   };
 
-  const checks = [...seoChecks, ...agentChecks].map((check) => check(ctx));
+  const checks = [...seoChecks, ...tagChecks, ...agentChecks].map((check) => check(ctx));
   const seo = scorePillar(checks, 'seo');
   const agent = scorePillar(checks, 'agent');
   const overall = Math.round((seo.score + agent.score) / 2);
@@ -111,6 +126,7 @@ export async function scan(input: string, opts: ScanOptions = {}): Promise<Repor
     pillars: { seo, agent },
     checks,
     topFixes: topFixes(checks),
+    tags,
   };
 }
 

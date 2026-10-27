@@ -40,6 +40,39 @@ function checkRow(c: CheckResult): string {
     </li>`;
 }
 
+/** What each category covers and why it matters, shown behind the "?" next to its heading. */
+const CATEGORY_HELP: Record<string, string> = {
+  Crawlability:
+    'Whether search engines can reach and index this URL: status code, HTTPS, redirects, noindex, robots.txt and the canonical tag. If a page can’t be crawled or is marked noindex, nothing else matters, because it won’t rank.',
+  Metadata:
+    'The tags in the page’s <head> that search results, link previews and AI answers display: title, meta description, language, viewport, Open Graph and favicon. They decide how the page looks before anyone clicks.',
+  Content:
+    'The substance of the page: one clear H1, a logical heading outline, enough copy to answer the question, and alt text on images. Search engines rank, and AI models quote, what they can actually read.',
+  Links:
+    'Internal links let crawlers and agents discover your other pages and understand how they relate. Descriptive anchor text says what’s behind each link, and broken links waste crawl budget and dead-end visitors.',
+  'Structured data':
+    'JSON-LD schema that states facts in machine-readable form: who you are, what you sell, FAQs, breadcrumbs. It powers rich results in Google and gives AI answers reliable facts to cite.',
+  'Tags & tracking':
+    'Analytics, ad, marketing, consent and verification tags found in the HTML and inside public Google Tag Manager containers. Mostly informational; it flags retired Universal Analytics, GA4 installed twice, tracking with no consent manager, and heavy tag loads.',
+  Performance:
+    'How fast the server answers and how large the HTML is. Slow, heavy pages get crawled less often, and AI agents with tight time and context limits may give up or cut the page short.',
+  Access:
+    'Whether AI assistants are allowed and able to fetch the page: robots.txt rules for AI agents, firewalls that refuse AI user-agents, and real 404s for missing pages. An agent that can’t fetch a page can’t cite it.',
+  Understanding:
+    'Whether an agent can make sense of the page without running JavaScript: content in the raw HTML, landmarks like <main>, citation metadata and labelled controls. Most AI agents read the raw HTML and nothing else.',
+  Discovery:
+    'How crawlers and agents find the rest of your site: a robots.txt and an XML sitemap. Without them, discovery depends on links alone, and new or deep pages get found late.',
+  Emerging:
+    'Newer standards for AI agents: llms.txt, Markdown versions of pages, Content Signals, API catalogs and MCP discovery. Adoption is early and the impact is unproven, so they only add bonus points and never lower the score.',
+};
+
+function tooltip(category: string): string {
+  const text = CATEGORY_HELP[category];
+  if (!text) return '';
+  const id = `tip-${category.toLowerCase().replace(/[^a-z]+/g, '-')}`;
+  return `<span class="tip"><button type="button" class="tip-btn" aria-label="About ${esc(category)}" aria-describedby="${id}">?</button><span class="tip-body" role="tooltip" id="${id}">${esc(text)}</span></span>`;
+}
+
 function section(report: Report, pillar: 'seo' | 'agent', heading: string): string {
   const checks = report.checks.filter((c) => c.pillar === pillar);
   const categories = [...new Set(checks.map((c) => c.category))];
@@ -50,7 +83,7 @@ function section(report: Report, pillar: 'seo' | 'agent', heading: string): stri
       .map((cat) => {
         const inCat = checks.filter((c) => c.category === cat);
         const note = inCat[0]?.tier === 'bonus' ? '<span class="note">Bonus: can only add points</span>' : '';
-        return `<h3>${esc(cat)} ${note}</h3><ul class="checks">${inCat.map(checkRow).join('')}</ul>`;
+        return `<h3>${esc(cat)}${tooltip(cat)} ${note}</h3><ul class="checks">${inCat.map(checkRow).join('')}</ul>`;
       })
       .join('')}
   </section>`;
@@ -111,6 +144,12 @@ header .meta { color: var(--muted); font-size: 13px; margin: 0; }
 .fixes, .pillar { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px; margin: 16px 0; }
 h2 { font-size: 18px; margin: 0 0 8px; }
 h3 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 20px 0 6px; }
+h3 { position: relative; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.tip { display: inline-flex; }
+.tip-btn { width: 16px; height: 16px; padding: 0; border-radius: 50%; border: 1px solid var(--muted); background: transparent; color: var(--muted); font: 600 10px/1 ui-sans-serif, system-ui, sans-serif; cursor: help; display: inline-flex; align-items: center; justify-content: center; }
+.tip-btn:hover, .tip-btn:focus-visible { border-color: var(--accent); color: var(--accent); outline: none; }
+.tip-body { position: absolute; left: 0; top: calc(100% + 6px); z-index: 10; width: 340px; max-width: calc(100vw - 48px); padding: 10px 12px; border-radius: 10px; background: var(--text); color: var(--bg); font: 400 13px/1.5 ui-sans-serif, system-ui, -apple-system, sans-serif; text-transform: none; letter-spacing: 0; box-shadow: 0 8px 24px rgb(0 0 0 / 0.18); opacity: 0; visibility: hidden; transition: opacity 0.12s; pointer-events: none; }
+.tip:hover .tip-body, .tip-btn:focus-visible + .tip-body, .tip-btn:focus + .tip-body { opacity: 1; visibility: visible; }
 .note { text-transform: none; letter-spacing: 0; font-weight: 400; margin-left: 6px; }
 .fixes ol { margin: 0; padding-left: 20px; } .fixes li { margin: 10px 0; } .fixes p { margin: 2px 0 0; color: var(--muted); }
 .pill, .tier { font-size: 11px; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 1px 8px; white-space: nowrap; }

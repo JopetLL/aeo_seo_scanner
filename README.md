@@ -25,7 +25,7 @@ No coding needed, just one command in your computer's terminal.
 npx github:JopetLL/aeo_seo_scanner example.com --html
 ```
 
-The first run asks "Ok to proceed?" (type `y`) and takes about 30 seconds to install. After that, scans take 2–10 seconds. The scores print in the terminal, and `--html` also saves a shareable report (like the one above) in the folder you ran it from. On a Mac, `open aeo_seo_scanner-*.html` opens it.
+The first run asks "Ok to proceed?" (type `y`) and takes about 30 seconds to install. After that, scans take 2–10 seconds. The scores print in the terminal, and `--html` also saves a shareable report (like the one above) in the folder you ran it from. On a Mac, `open aeo_seo_scanner-*.html` opens it. In the report, hover the **?** next to any category to see what it covers and why it matters.
 
 ### What the scores mean
 
@@ -41,6 +41,7 @@ The first run asks "Ok to proceed?" (type `y`) and takes about 30 seconds to ins
 - **Agents** covers what AI assistants need to fetch, read and cite it. Most AI agents don't run JavaScript, so content that only appears after scripts run counts as missing.
 - **Overall** is the average of the two.
 - Start with **Top fixes**: they're already ranked by impact, with essential checks first.
+- **Tags & tracking** lists the analytics, ad and marketing tools a page runs, including those configured inside Google Tag Manager. It's handy for seeing a competitor's stack.
 
 ### What it finds in practice
 
@@ -50,6 +51,7 @@ Real findings from scans of live sites:
 - **A staffing company's Organization schema was silently invalid** because a line break had crept into the middle of the logo URL. Google ignores the whole block, including the brand, address and contact details AI answers draw on.
 - **A popular web app's homepage is an empty JavaScript shell.** AI agents see one word of content.
 - **A site that redirects every missing page to its homepage**, which search engines treat as a soft 404, and which misleads agents that follow a dead link.
+- **A Google Tag Manager container still configured with two retired Universal Analytics properties** next to GA4, Google Ads, LinkedIn and Bing tags, in a 631 KB container.
 
 ## Use it from Claude Code
 
@@ -115,6 +117,8 @@ Exit codes: `0` success, `1` below `--fail-under`, `2` the page could not be sca
 | | Empty or generic anchor text ("click here", "learn more") | Minor |
 | Structured data | Valid JSON-LD, with the schema types listed | Recommended |
 | Performance | Response time · HTML size | Minor |
+| Tags & tracking | Inventory of analytics, ad, marketing, consent and verification tags, from the HTML and from public Google Tag Manager containers (IDs such as `G-…`, `AW-…`, `GTM-…`, and the Custom HTML tag count) | Info |
+| | Warnings only: retired Universal Analytics still installed · GA4 both hard-coded and in GTM · tracking with no consent manager · 8+ tracking vendors or a GTM container over 500 KB | Minor |
 
 ### AI agent readiness
 
@@ -136,7 +140,7 @@ Each pillar is a weighted share of the points available:
 
 - **Essential** checks are worth 3, **recommended** 2 and **minor** 1.
 - A **pass** earns full credit, a **warning** half credit and a **fail** none.
-- Checks that don't apply (no images, no forms) are left out rather than counted as passes or failures.
+- Checks that don't apply (no images, no forms) are left out rather than counted as passes or failures. The tag inventory never affects the score; only its four warnings can, as minor checks.
 - **Bonus** checks for emerging standards add 1 point each, up to +5. Their absence never lowers a score, because adoption is still early and their impact is unproven.
 
 The overall score is the average of the SEO and Agents scores.
@@ -158,6 +162,7 @@ The overall score is the average of the SEO and Agents scores.
 - AI user-agent tests send the published UA strings from a regular IP address. Some firewalls verify bot IP ranges, so a block reported here may not affect the real agent. The report says so when this applies.
 - External links that refuse scripted requests (social networks often do) are marked *unverified*, not broken.
 - A score is a prioritised technical review. It isn't a ranking guarantee or an accessibility audit.
+- Tag detection reads the HTML and public GTM containers. Tags bundled into a site's own JavaScript, served from its own domain, or fired server-side are invisible, and the scan can't tell whether a tag actually fires for a given visitor (that depends on consent and triggers).
 
 ## Development
 

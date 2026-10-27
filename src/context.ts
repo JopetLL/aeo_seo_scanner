@@ -1,6 +1,7 @@
 import type { CheerioAPI } from 'cheerio';
 import type { FetchResult } from './fetcher.ts';
 import type { Robots } from './robots.ts';
+import type { TagFinding } from './tags.ts';
 
 export interface LinkInfo {
   href: string;
@@ -36,4 +37,7 @@ export interface ScanContext {
   /** Null when link checking was turned off. */
   linkStatuses: LinkStatus[] | null;
   linksSkipped: number;
+  /** Public Google Tag Manager containers referenced by the page, keyed by GTM ID. */
+  gtmContainers: Record<string, FetchResult>;
+  tags: TagFinding[];
 }

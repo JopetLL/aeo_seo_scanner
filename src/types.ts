@@ -1,3 +1,5 @@
+import type { TagFinding } from './tags.ts';
+
 export type Status = 'pass' | 'warn' | 'fail' | 'info';
 export type Pillar = 'seo' | 'agent';
 
@@ -46,4 +48,6 @@ export interface Report {
   pillars: Record<Pillar, PillarScore>;
   checks: CheckResult[];
   topFixes: CheckResult[];
+  /** Analytics, ad, marketing, consent and verification tags found on the page. */
+  tags: TagFinding[];
 }

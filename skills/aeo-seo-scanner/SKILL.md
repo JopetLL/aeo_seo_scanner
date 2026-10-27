@@ -1,6 +1,6 @@
 ---
 name: aeo-seo-scanner
-description: Scan any web page for SEO and AEO (answer engine optimisation / AI-agent readiness) and score it 0–100 with a letter grade, top fixes and evidence. Use whenever the user asks to scan, audit, check, grade or score a URL or page for SEO, AEO, GEO, AI visibility, agent readiness, "can ChatGPT/Claude/Perplexity read this page", llms.txt, robots.txt AI-bot rules, titles, H1s, canonicals, meta descriptions, structured data or broken links — including "run the scanner on X", "how does this page score", "compare our page with competitor Y", or a pasted URL with "check this". Also use for comparing several pages or competitors side by side. Do NOT use for keyword research, rankings or traffic (those need Search Console or Semrush data), or for site-wide crawls of thousands of pages.
+description: Scan any web page for SEO and AEO (answer engine optimisation / AI-agent readiness) and score it 0–100 with a letter grade, top fixes and evidence, plus an inventory of its analytics, ad, consent and Google Tag Manager tags. Use whenever the user asks to scan, audit, check, grade or score a URL or page for SEO, AEO, GEO, AI visibility, agent readiness, "can ChatGPT/Claude/Perplexity read this page", llms.txt, robots.txt AI-bot rules, titles, H1s, canonicals, meta descriptions, structured data, broken links, or which tracking/ad tags (GA4, GTM, Meta Pixel, Google Ads) a page or competitor runs — including "run the scanner on X", "how does this page score", "compare our page with competitor Y", or a pasted URL with "check this". Also use for comparing several pages or competitors side by side. Do NOT use for keyword research, rankings or traffic (those need Search Console or Semrush data), or for site-wide crawls of thousands of pages.
 ---
 
 # AEO + SEO scanner
@@ -8,8 +8,9 @@ description: Scan any web page for SEO and AEO (answer engine optimisation / AI-
 Runs the `aeo_seo_scanner` CLI against one or more URLs. Each scan fetches the page the
 way a crawler does (raw HTML, no JavaScript), plus robots.txt, the sitemap, llms.txt,
 `/.well-known/` files, a deliberately missing URL, a Markdown version of the page, and
-the page again under ChatGPT, Claude, Perplexity and GPTBot user-agents. 37 checks are
-then scored into an **SEO** score and an **Agents** (AEO) score; the overall score is
+the page again under ChatGPT, Claude, Perplexity and GPTBot user-agents. 42 checks, including
+a Tags & tracking inventory read from the HTML and any public Google Tag Manager
+container, are then scored into an **SEO** score and an **Agents** (AEO) score; the overall score is
 their average.
 
 ## Running a scan
@@ -70,6 +71,15 @@ Some results need judgement before you repeat them as problems. Check the eviden
 - **Bonus checks** (llms.txt, Markdown negotiation, Content Signals, API catalog, MCP
   discovery) can only add points. Never present their absence as a problem; at most
   mention them as optional extras.
+- **Tags & tracking** comes from the HTML and from public Google Tag Manager containers
+  (the report's top-level `tags` array lists each tool, its IDs, and whether it was found
+  `page`, `gtm` or both). Use it for competitor intel (which ad platforms they buy, which
+  analytics they run), but state the limits: tags bundled into first-party scripts or
+  fired server-side are invisible, so "not found" never means "not used", and a tag in a
+  container is *configured*, not proven to fire. Only its four warnings affect the score.
+- **No consent manager detected** is a prompt to check, not a finding to repeat as fact.
+  Sites with hand-built consent code are recognised as "Custom consent code", but a
+  consent tool loaded some other way can still be missed.
 - **Labelled controls** ignores controls hidden with `aria-hidden`. If a result still
   looks wrong, fetch the page with `curl` and inspect the element before reporting it.
 
