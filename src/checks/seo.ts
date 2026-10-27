@@ -185,7 +185,7 @@ const headingOrder: Check = (ctx) => {
     if (levels[i]! > levels[i - 1]! + 1) skips.push(`H${levels[i - 1]} → H${levels[i]}`);
   }
   return skips.length
-    ? r('warn', plural(skips.length, 'skipped level'), {
+    ? r('warn', `Skips heading levels ${plural(skips.length, 'time')}`, {
         details: [...new Set(skips)],
         fix: 'Nest headings in order (H2 under H1, H3 under H2) so the outline is machine-readable.',
       })

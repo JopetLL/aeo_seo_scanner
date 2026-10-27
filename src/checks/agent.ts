@@ -143,20 +143,28 @@ const labelledControls: Check = (ctx) => {
   const r = make('labelled-controls', 'Understanding', 'Labelled controls', 'recommended');
   const $ = ctx.$;
   const unlabelled: string[] = [];
-  $('input:not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="image"]), select, textarea').each((_, el) => {
+  // Controls hidden from assistive tech (aria-hidden on the element or an ancestor) are invisible to agents too.
+  const exposed = (_: number, el: unknown) => $(el as never).closest('[aria-hidden="true"]').length === 0;
+  const fields = $('input:not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="image"]), select, textarea').filter(exposed);
+  const buttons = $('button, [role="button"], input[type="submit"], input[type="button"], input[type="reset"]').filter(exposed);
+  const labels = $('label[for]');
+
+  fields.each((_, el) => {
     const $el = $(el);
     const id = $el.attr('id');
     const labelled =
       $el.attr('aria-label') || $el.attr('aria-labelledby') || $el.attr('title') ||
-      (id && $(`label[for="${id}"]`).length) || $el.closest('label').length;
+      (id && labels.filter((_, l) => $(l).attr('for') === id).length) || $el.closest('label').length;
     if (!labelled) unlabelled.push(`<${(el as { tagName: string }).tagName} name="${$el.attr('name') ?? ''}">`);
   });
-  $('button, [role="button"]').each((_, el) => {
+  buttons.each((_, el) => {
     const $el = $(el);
-    const name = $el.text().trim() || $el.attr('aria-label') || $el.attr('aria-labelledby') || $el.attr('title') || $el.find('img[alt]').attr('alt');
+    const name =
+      $el.text().trim() || $el.attr('value') || $el.attr('aria-label') || $el.attr('aria-labelledby') ||
+      $el.attr('title') || $el.find('img[alt]').attr('alt') || $el.find('svg title').text().trim();
     if (!name) unlabelled.push('<button> with no accessible name');
   });
-  const total = $('input:not([type="hidden"]), select, textarea, button, [role="button"]').length;
+  const total = fields.length + buttons.length;
   if (total === 0) return r('info', 'No form controls');
   if (unlabelled.length === 0) return r('pass', `All ${total} controls have accessible names`);
   return r(unlabelled.length / total > 0.25 ? 'fail' : 'warn', `${unlabelled.length} of ${total} controls unlabelled`, {

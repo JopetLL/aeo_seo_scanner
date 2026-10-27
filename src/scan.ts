@@ -138,7 +138,7 @@ function extractLinks($: cheerio.CheerioAPI, pageUrl: string): LinkInfo[] {
     }
     if (!/^https?:$/.test(resolved.protocol)) return;
     resolved.hash = '';
-    const text = ($a.text().replace(/\s+/g, ' ').trim() || $a.attr('aria-label') || $a.attr('title') || $a.find('img[alt]').attr('alt') || '').trim();
+    const text = ($a.text().replace(/\s+/g, ' ').trim() || $a.attr('aria-label') || $a.attr('title') || $a.find('img[alt]').attr('alt') || $a.find('[aria-label]').attr('aria-label') || '').trim();
     links.push({
       href: resolved.href,
       text,
