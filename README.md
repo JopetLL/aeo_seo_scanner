@@ -70,7 +70,7 @@ Agent-readiness scanners such as [Is Agentic](https://is-agentic.com) and Cloudf
 
 ## Install for developers
 
-Requires Node 20 or later.
+Requires Node 20.18 or later.
 
 ```sh
 npx github:JopetLL/aeo_seo_scanner <url>       # run straight from GitHub

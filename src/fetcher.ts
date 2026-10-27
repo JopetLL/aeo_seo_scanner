@@ -1,3 +1,10 @@
+import { Agent, setGlobalDispatcher } from 'undici';
+
+// Node rejects responses whose headers exceed 16 KB; browsers allow far more. Sites with
+// large Content-Security-Policy headers (webflow.com sends ~17 KB) would otherwise fail
+// with UND_ERR_HEADERS_OVERFLOW, so raise the limit for every fetch the scanner makes.
+setGlobalDispatcher(new Agent({ maxHeaderSize: 256 * 1024 }));
+
 export const BROWSER_UA =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36';
 
